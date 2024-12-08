@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>計算器</title>
+</head>
+<body>
+    <h1>資源計算器</h1>
+    <form id="calculator-form">
+        <label for="bronze">Bronze:</label>
+        <input type="number" id="bronze" value="228"><br><br>
+        
+        <label for="silver">Silver:</label>
+        <input type="number" id="silver" value="98"><br><br>
+        
+        <label for="gold">Gold:</label>
+        <input type="number" id="gold" value="25"><br><br>
+        
+        <label for="emerald">Emerald:</label>
+        <input type="number" id="emerald" value="13"><br><br>
+
+        <label for="initial-stage">Initial Stage (Chest Sequence):</label>
+        <select id="initial-stage">
+            <!-- Options will be populated dynamically -->
+        </select><br><br>
+
+        <label for="initial-point">Initial Point:</label>
+        <input type="number" id="initial-point" value="12"><br><br>
+
+        <button type="button" onclick="calculate()">計算</button>
+    </form>
+
+    <h2>結果</h2>
+    <p>累積點數: <span id="result">0</span></p>
+
+    <script>
+        const chestSequence = [20, 30, 40, 80, 60, 120, 80, 120, 180];
+        const reward = [10, 10, 20, 50, 20, 0, 20, 50, 20, 0];
+
+        // 動態生成 Initial Stage 選項
+        const initialStageSelect = document.getElementById('initial-stage');
+        chestSequence.forEach((value, index) => {
+            const option = document.createElement('option');
+            option.value = index; // 設置索引為值
+            option.textContent = value; // 顯示數字
+            if (index === 7) option.selected = true; // 預設選擇第 7 個
+            initialStageSelect.appendChild(option);
+        });
+
+        function calculate() {
+            let bronze = parseInt(document.getElementById('bronze').value);
+            let silver = parseInt(document.getElementById('silver').value);
+            let gold = parseInt(document.getElementById('gold').value);
+            let emerald = parseInt(document.getElementById('emerald').value);
+
+            let initialStage = parseInt(document.getElementById('initial-stage').value); // 選中的索引
+            let initialPoint = parseInt(document.getElementById('initial-point').value);
+
+            let currentPoint = 0;
+            let stageReward = 0;
+
+            while (true) {
+                let tempPoint = bronze + silver * 10 + gold * 20 + emerald * 50;
+                stageReward += tempPoint;
+                currentPoint += tempPoint;
+                bronze = silver = gold = emerald = 0;
+
+                let currentStage = initialStage;
+                let currentResidualPoint = chestSequence[currentStage] - initialPoint;
+
+                while (true) {
+                    if (tempPoint > currentResidualPoint) {
+                        tempPoint -= currentResidualPoint;
+
+                        switch (reward[currentStage]) {
+                            case 10:
+                                bronze += 1;
+                                break;
+                            case 20:
+                                gold += 1;
+                                break;
+                            case 50:
+                                emerald += 1;
+                                break;
+                        }
+
+                        currentStage = (currentStage >= chestSequence.length - 1) ? 0 : currentStage + 1;
+                        currentResidualPoint = chestSequence[currentStage];
+                    } else {
+                        initialStage = currentStage;
+                        initialPoint = tempPoint;
+                        break;
+                    }
+                }
+
+                while (stageReward > 1000) {
+                    silver += 10;
+                    stageReward -= 1000;
+                }
+
+                if (bronze + silver + gold + emerald === 0) break;
+            }
+
+            document.getElementById('result').textContent = currentPoint;
+        }
+    </script>
+</body>
+</html>
